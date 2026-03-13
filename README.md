@@ -1,6 +1,6 @@
 ## 🚀 GSFM Framework (`GSFM.py`)
 
-The core of this project is a comprehensive class implementation of the **Generalized Social Force Model (GSFM)**, designed to handle diverse pedestrian-vehicle (P2V) interaction datasets.
+The core of this project is a comprehensive class implementation of the **Game-theoretic Social Force Model (GSFM)**, designed to handle diverse pedestrian-vehicle (P2V) interaction datasets.
 
 ### 🧱 Supported Datasets
 * **Small-scale (DUT/CITR)**: Optimized for CSV-based trajectories. Pedestrian and vehicle data are stored in separate files with identical formatting for each scene.
