@@ -1,16 +1,36 @@
-# CSE-6730-Project
-Pedestrian Interaction Modeling
+## GSFM Framework (`GSFM.py`)
 
-1. GSFM Framework (GSFM.py)
-A comprehensive class containing all interaction functions. The framework is designed for training on DUT/CITR:
+The core of this project is a comprehensive class implementation of the **Generalized Social Force Model (GSFM)**, designed to handle diverse pedestrian-vehicle (P2V) interaction datasets.
 
-Small-scale Data (DUT/CITR): Handles scenarios where pedestrian and vehicle trajectories are stored in separate, same-format CSV files for the same scene.
+### Supported Datasets
+* **Small-scale (DUT/CITR)**: Optimized for CSV-based trajectories. Pedestrian and vehicle data are stored in separate files with identical formatting for each scene.
+* **Large-scale (Shifts)**: Tailored for the Shifts Dataset (3400+ interaction scenes). Its large scale makes it ideal for Deep Learning training or large-scale validation.
 
-Large-scale Data (Shifts): Tailored to process the Shifts Dataset (3400+ intensive interaction scenes). Necessary modifications have been implemented to parse complex JSON formats, making it ideal for Deep Learning training or large-scale validation.
+> [!NOTE]
+> **Performance Optimization**: Due to the massive scale of the Shifts dataset, it is currently processed using `.npz` files to accelerate calculation speeds. 
+> 
+> *Current Status*: The code maintains separate loading logic for DUT/CITR (CSV) and Shifts (NPZ). We are evaluating whether to unify these into a single format or maintain dual-parsing logic for maximum performance.
 
-Access link to the two data set: https://gtvault-my.sharepoint.com/:u:/g/personal/hjiang398_gatech_edu/IQDDrFfcfHNkR7Ki41pat-5LAc0YRCOwynKij1gej2wQOUs?e=XlKh5T
+---
 
-#sorry I haven't unify them in a same format for the Shifts is too large. So I have transfer it into npz to accelerate the calculation speed. So I'm not sure whether to motify the code or transfer the JSON/npz data into the format of DUT/CITR to accommondate the code.
+## Parameter Tuning (`GA_Notebook.ipynb`)
 
-2. Parameter Tuning (GA_Notebook.ipynb)
-The author employs a Genetic Algorithm (GA) for "white-box" parameter tuning. While GA is the default, the modular design of GSFM.py allows you to swap in any optimization algorithm (e.g., PSO, RL, or Bayesian Optimization) with minimal changes.
+We employ a **Genetic Algorithm (GA)** for "white-box" parameter tuning, allowing for interpretable model optimization.
+
+* **Modular Design**: The `GSFM.py` framework is algorithm-agnostic.
+* **Extensibility**: You can swap the GA with other optimization techniques with minimal code adjustments.
+
+---
+
+## 📦 Data Access
+
+To set up the simulation environment, please download the datasets from the link below and follow the directory structure mentioned in the [Project Structure](#-project-structure) section.
+
+🔗 **Download Link**: [OneDrive Shared Folder](https://gtvault-my.sharepoint.com/:u:/g/personal/hjiang398_gatech_edu/IQDDrFfcfHNkR7Ki41pat-5LAc0YRCOwynKij1gej2wQOUs?e=XlKh5T)
+
+---
+
+## 🛠 To-Do / Contribution Ideas
+- [ ] Unify data input pipeline for CSV and NPZ formats.
+- [ ] Implement additional optimization algorithms (e.g., PSO).
+- [ ] Enhance visualization for Shifts dataset interaction plots.
