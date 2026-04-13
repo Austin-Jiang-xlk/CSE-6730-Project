@@ -162,6 +162,12 @@ This separation has several advantages:
 
 In this design, the GNN does not directly output future coordinates. Instead, it predicts behavior mode probabilities, and the simulator translates those probabilities into motion through mode-specific force parameters.
 
+## 📦 Data Access
+
+To set up the simulation environment, please download the datasets from the link below and follow the directory structure mentioned in the [Project Structure](#-project-structure) section.
+
+🔗 **Download Link**: [OneDrive Shared Folder](https://gtvault-my.sharepoint.com/:u:/g/personal/hjiang398_gatech_edu/IQDDrFfcfHNkR7Ki41pat-5LAc0YRCOwynKij1gej2wQOUs?e=XlKh5T)
+
 
 ##Training the GNN
 ```
