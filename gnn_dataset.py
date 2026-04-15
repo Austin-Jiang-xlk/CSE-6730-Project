@@ -365,23 +365,38 @@ def behavior_collate_fn(batch: List[GraphSample]) -> Dict[str, object]:
 
 def discover_scenario_pairs(data_dir: str) -> List[Dict[str, Optional[str]]]:
     """
-    Auto-discovers DUT/CITR style scenario pairs from one directory.
+    Recursively discover scenario pairs under data_dir.
 
-    Rule:
-      files with "_ped_" are pedestrian csv
-      files with "_veh_" are vehicle csv
-      key = prefix before "_traj_"
+    Rules:
+    - ped files contain "_traj_ped_"
+    - veh files contain "_traj_veh_"
+    - skip generated pseudo-label caches
+    - use (relative folder + scenario prefix) as grouping key
     """
-    files = [f for f in os.listdir(data_dir) if f.endswith(".csv")]
     scenario_dict: Dict[str, Dict[str, str]] = {}
 
-    for f in files:
-        key = f.split("_traj_")[0]
-        scenario_dict.setdefault(key, {})
-        if "_ped_" in f:
-            scenario_dict[key]["ped_csv"] = os.path.join(data_dir, f)
-        elif "_veh_" in f:
-            scenario_dict[key]["veh_csv"] = os.path.join(data_dir, f)
+    for root, _, files in os.walk(data_dir):
+        for f in files:
+            if not f.endswith(".csv"):
+                continue
+            if f.endswith("_pseudo_labels.csv"):
+                continue
+
+            full_path = os.path.join(root, f)
+
+            if "_traj_" not in f:
+                continue
+
+            prefix = f.split("_traj_")[0]
+            rel_root = os.path.relpath(root, data_dir)
+            key = os.path.join(rel_root, prefix)
+
+            scenario_dict.setdefault(key, {})
+
+            if "_traj_ped_" in f:
+                scenario_dict[key]["ped_csv"] = full_path
+            elif "_traj_veh_" in f:
+                scenario_dict[key]["veh_csv"] = full_path
 
     pairs = []
     for _, info in scenario_dict.items():
@@ -392,4 +407,4 @@ def discover_scenario_pairs(data_dir: str) -> List[Dict[str, Optional[str]]]:
             "veh_csv": info.get("veh_csv"),
         })
 
-    return pairs
+    return sorted(pairs, key=lambda x: x["ped_csv"])
