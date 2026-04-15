@@ -75,12 +75,11 @@ CSE-6730-Project/
 ├── labeling_notebook.ipynb
 ├── README.md
 └── ReadMeCode.txt
-
+```
 
 
 ## Main Files
 
-```text
 GSFM.py
 - Implements the Game-theoretic Social Force Model used as the physics-based simulation backbone.
 
@@ -130,7 +129,6 @@ visualization.py
 
 ## Behavior Modes
 
-```text
 Aggressive
 - The pedestrian tends to maintain motion and cross with limited yielding behavior.
 
@@ -148,7 +146,7 @@ These modes are represented in two ways:
 2. as parameterized force regimes inside the Multi-Modal GSFM
 
 
-##Hybrid Modeling Design
+## Hybrid Modeling Design
 The framework is designed to separate high-level behavior recognition from low-level motion generation.
 
 The GNN is responsible for inferring a pedestrian’s likely behavior mode from temporal motion patterns and local interaction structure. The physical simulator is then responsible for generating trajectories under interpretable force dynamics.
@@ -169,11 +167,10 @@ To set up the simulation environment, please download the datasets from the link
 🔗 **Download Link**: [OneDrive Shared Folder](https://gtvault-my.sharepoint.com/:u:/g/personal/hjiang398_gatech_edu/IQDDrFfcfHNkR7Ki41pat-5LAc0YRCOwynKij1gej2wQOUs?e=XlKh5T)
 
 
-##Training the GNN
+## Training the GNN
 ```
 python train_gnn.py \
-  --ped_csv data/example_ped.csv \
-  --veh_csv data/example_veh.csv \
+  --data_dir data/DUT-CITR/campus_field \
   --epochs 30 \
   --batch_size 16 \
   --use_class_weights
