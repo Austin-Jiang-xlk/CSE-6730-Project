@@ -1,0 +1,46 @@
+{
+  "run_summary": {
+    "checkpoint": "checkpoints/behavior_gnn/best_model.pt",
+    "ped_csv": "data/DUT-CITR/v2p_controlled/back_interaction_01_traj_ped_filtered.csv",
+    "veh_csv": "data/DUT-CITR/v2p_controlled/back_interaction_01_traj_veh_filtered.csv",
+    "num_pedestrians_with_mode_probs": 8,
+    "aggregation": "mean",
+    "output_dir": "outputs\\hybrid_run"
+  },
+  "hybrid_metrics": {
+    "num_gt_pedestrians": 8,
+    "num_sim_pedestrians": 8,
+    "num_evaluated_pedestrians": 8,
+    "num_missing_in_sim": 0,
+    "num_missing_in_gt": 0,
+    "mean_ade": 4.887303724139045,
+    "median_ade": 4.853608322101017,
+    "mean_fde": 0.016348288982899223,
+    "median_fde": 0.009110905473752907,
+    "mean_rmse_pos": 5.611266829944829,
+    "mean_speed_mae": 0.7137076121644768,
+    "mean_speed_rmse": 0.8040862840775909,
+    "mean_path_length_abs_error": 0.6694468048638886,
+    "mean_min_pedveh_dist_abs_error": 1.1640022114699728,
+    "collision_rate_gt": 0.0,
+    "collision_rate_sim": 0.25,
+    "collision_match_rate": 0.75,
+    "frame_weighted_ade": 4.887303724139046,
+    "frame_weighted_rmse_pos": 5.612112407927173
+  },
+  "mode_probability_summary": {
+    "num_pedestrians_with_probs": 8,
+    "predicted_mode_counts": {
+      "following": 7,
+      "regular": 1
+    },
+    "mean_prob_aggressive": 0.01743865216212721,
+    "mean_prob_regular": 0.26575932279229164,
+    "mean_prob_cautious": 0.031039266556035686,
+    "mean_prob_following": 0.6857627630233765
+  },
+  "files": {
+    "per_pedestrian_metrics_csv": "outputs\\evaluation\\per_pedestrian_metrics.csv",
+    "id_coverage_csv": "outputs\\evaluation\\id_coverage.csv"
+  }
+}
