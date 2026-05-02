@@ -10,6 +10,14 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+"""
+AI Usage Statement
+Used AI (ChatGPT) for the following tasks:
+- help with helper functions for more robust error handeling
+- debugging
+- refactoring, specifically for more readable and robust code due to initial issues with names, missing cols, etc
+- also suggested use of dataclass for metrics
+"""
 
 
 PED_MODE_COLUMNS = ["aggressive", "regular", "cautious", "following"]
@@ -46,8 +54,6 @@ class PedMetrics:
     prob_regular: Optional[float] = None
     prob_cautious: Optional[float] = None
     prob_following: Optional[float] = None
-
-
 @dataclass
 class AggregateMetrics:
     num_gt_pedestrians: int
@@ -70,17 +76,13 @@ class AggregateMetrics:
     frame_weighted_ade: float
     frame_weighted_rmse_pos: float
 
-
-# ---------------------------
-# Loading helpers
-# ---------------------------
-
 def load_json(path: str | Path):
+    # Load json helper
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-
 def load_ground_truth_ped_csv(path: str | Path) -> pd.DataFrame:
+    # Loader helper for error handeling
     df = pd.read_csv(path)
     if "x_est" in df.columns:
         df = df.rename(columns={"x_est": "x", "y_est": "y", "vx_est": "vx", "vy_est": "vy"})
@@ -94,8 +96,8 @@ def load_ground_truth_ped_csv(path: str | Path) -> pd.DataFrame:
     df["frame"] = df["frame"].astype(int)
     return df.sort_values(["id", "frame"]).reset_index(drop=True)
 
-
 def load_ground_truth_veh_csv(path: str | Path | None) -> Optional[pd.DataFrame]:
+    # Loader helper for error handeling
     if path is None or not os.path.exists(path):
         return None
     df = pd.read_csv(path)
@@ -111,8 +113,8 @@ def load_ground_truth_veh_csv(path: str | Path | None) -> Optional[pd.DataFrame]
     df["frame"] = df["frame"].astype(int)
     return df.sort_values(["id", "frame"]).reset_index(drop=True)
 
-
 def load_sim_ped_json(path: str | Path) -> pd.DataFrame:
+    # Load simulated paths with error handeling
     payload = load_json(path)
     rows = []
     for ped_id, entries in payload.items():
@@ -133,8 +135,8 @@ def load_sim_ped_json(path: str | Path) -> pd.DataFrame:
         df = compute_velocities_from_positions(df, id_col="id")
     return df.sort_values(["id", "frame"]).reset_index(drop=True)
 
-
 def load_sim_veh_json(path: str | Path | None) -> Optional[pd.DataFrame]:
+     # Load simulated paths with error handeling
     if path is None or not os.path.exists(path):
         return None
     payload = load_json(path)
@@ -157,8 +159,8 @@ def load_sim_veh_json(path: str | Path | None) -> Optional[pd.DataFrame]:
         df = compute_vehicle_speed(df)
     return df.sort_values(["id", "frame"]).reset_index(drop=True)
 
-
 def load_mode_probabilities_csv(path: str | Path | None) -> Optional[pd.DataFrame]:
+    # Load probabilities csv with error handeling
     if path is None or not os.path.exists(path):
         return None
     df = pd.read_csv(path)
@@ -166,12 +168,8 @@ def load_mode_probabilities_csv(path: str | Path | None) -> Optional[pd.DataFram
         raise ValueError(f"Mode probability CSV must contain ped_id column: {path}")
     return df
 
-
-# ---------------------------
-# Data utilities
-# ---------------------------
-
 def compute_velocities_from_positions(df: pd.DataFrame, id_col: str = "id") -> pd.DataFrame:
+    # Get velocity from position
     out = df.copy().sort_values([id_col, "frame"]).reset_index(drop=True)
     out["vx"] = out.groupby(id_col)["x"].diff()
     out["vy"] = out.groupby(id_col)["y"].diff()
@@ -179,39 +177,38 @@ def compute_velocities_from_positions(df: pd.DataFrame, id_col: str = "id") -> p
     out["vy"] = out.groupby(id_col)["vy"].transform(lambda s: s.fillna(0.0))
     return out
 
-
 def compute_vehicle_speed(df: pd.DataFrame) -> pd.DataFrame:
+    # Get speed of vehicle from position
     out = df.copy().sort_values(["id", "frame"]).reset_index(drop=True)
     dx = out.groupby("id")["x"].diff().fillna(0.0)
     dy = out.groupby("id")["y"].diff().fillna(0.0)
     out["vel"] = np.sqrt(dx.to_numpy() ** 2 + dy.to_numpy() ** 2)
     return out
 
-
 def ensure_dir(path: str | Path) -> None:
+    # Ensures ourput directory exits
     Path(path).mkdir(parents=True, exist_ok=True)
 
-
 def speed_from_vxy(df: pd.DataFrame) -> np.ndarray:
+    # Get speed helper
     return np.sqrt(df["vx"].to_numpy() ** 2 + df["vy"].to_numpy() ** 2)
 
-
 def path_length(df: pd.DataFrame) -> float:
+    # Gets length of total path
     if len(df) < 2:
         return 0.0
     dx = np.diff(df["x"].to_numpy())
     dy = np.diff(df["y"].to_numpy())
     return float(np.sum(np.sqrt(dx * dx + dy * dy)))
 
-
 def min_pedveh_distance(ped_track: pd.DataFrame, veh_df: Optional[pd.DataFrame]) -> Optional[float]:
+    # Finds closest distance between pedestrian and a vehicle
     if veh_df is None or veh_df.empty or ped_track.empty:
         return None
     frames = ped_track["frame"].unique()
     veh_sub = veh_df[veh_df["frame"].isin(frames)]
     if veh_sub.empty:
         return None
-
     ped_by_frame = {int(f): grp for f, grp in ped_track.groupby("frame")}
     min_dist = math.inf
     found = False
@@ -228,16 +225,11 @@ def min_pedveh_distance(ped_track: pd.DataFrame, veh_df: Optional[pd.DataFrame])
         found = True
     return min_dist if found else None
 
-
 def make_collision_flag(min_dist: Optional[float], threshold: float) -> Optional[bool]:
+    # Mark collision if closest distance is below threshold
     if min_dist is None:
         return None
     return bool(min_dist < threshold)
-
-
-# ---------------------------
-# Core evaluation
-# ---------------------------
 
 def evaluate_single_run(
     gt_ped_df: pd.DataFrame,
@@ -247,21 +239,19 @@ def evaluate_single_run(
     mode_probs_df: Optional[pd.DataFrame],
     collision_threshold: float,
 ) -> Tuple[pd.DataFrame, AggregateMetrics, pd.DataFrame]:
+    # Compares one simulation against the ground truth
     gt_ids = set(gt_ped_df["id"].unique().tolist())
     sim_ids = set(sim_ped_df["id"].unique().tolist())
     common_ids = sorted(gt_ids & sim_ids)
-
     per_ped_rows: List[PedMetrics] = []
     summary_rows: List[Dict[str, object]] = []
-
     mode_lookup = {}
     if mode_probs_df is not None:
         mode_lookup = {int(r["ped_id"]): r for _, r in mode_probs_df.iterrows()}
-
     weighted_abs_pos_sum = 0.0
     weighted_sq_pos_sum = 0.0
     total_frames = 0
-
+    # loop through pedestrians
     for ped_id in common_ids:
         gt_track = gt_ped_df[gt_ped_df["id"] == ped_id].copy()
         sim_track = sim_ped_df[sim_ped_df["id"] == ped_id].copy()
@@ -278,11 +268,16 @@ def evaluate_single_run(
         sim_speed = np.sqrt(merged["vx_sim"].to_numpy() ** 2 + merged["vy_sim"].to_numpy() ** 2)
         speed_err = sim_speed - gt_speed
 
+        # Get distance error
         ade = float(np.mean(dist))
+        # Get final distance error
         fde = float(dist[-1])
+        # root mean squared position error
         rmse_pos = float(np.sqrt(np.mean(dist ** 2)))
+        # Absolute errors
         mae_x = float(np.mean(np.abs(dx)))
         mae_y = float(np.mean(np.abs(dy)))
+        # Differences between speeds
         speed_mae = float(np.mean(np.abs(speed_err)))
         speed_rmse = float(np.sqrt(np.mean(speed_err ** 2)))
 
@@ -295,6 +290,7 @@ def evaluate_single_run(
         coll_match = None if coll_gt is None or coll_sim is None else bool(coll_gt == coll_sim)
         min_dist_err = None if min_gt is None or min_sim is None else abs(min_sim - min_gt)
 
+        # load for pedestrian mode probabilities
         pred_mode = None
         pred_mode_name = None
         p_aggr = p_reg = p_caut = p_foll = None
@@ -307,6 +303,7 @@ def evaluate_single_run(
             p_caut = float(row["cautious"]) if "cautious" in row else None
             p_foll = float(row["following"]) if "following" in row else None
 
+        # Save pedestrian metrics
         metrics = PedMetrics(
             ped_id=int(ped_id),
             n_overlap_frames=int(len(merged)),
@@ -362,6 +359,7 @@ def evaluate_single_run(
     coll_sim_series = per_ped_df["collision_sim"].dropna()
     coll_match_series = per_ped_df["collision_match"].dropna()
 
+    # make aggregation metrics
     agg = AggregateMetrics(
         num_gt_pedestrians=int(len(gt_ids)),
         num_sim_pedestrians=int(len(sim_ids)),
@@ -390,12 +388,7 @@ def evaluate_single_run(
     })
 
     return per_ped_df, agg, missing_df
-
-
-# ---------------------------
-# Reporting helpers
-# ---------------------------
-
+# Compare different model summary stats
 def compare_runs(hybrid: AggregateMetrics, baseline: AggregateMetrics) -> Dict[str, float]:
     def pct_improve(base: float, new: float) -> float:
         if base == 0:
@@ -417,7 +410,7 @@ def compare_runs(hybrid: AggregateMetrics, baseline: AggregateMetrics) -> Dict[s
         )
     return out
 
-
+# Compare how many pedestrians were in each mode
 def mode_summary(mode_probs_df: Optional[pd.DataFrame]) -> Dict[str, object]:
     if mode_probs_df is None or mode_probs_df.empty:
         return {}
@@ -437,11 +430,7 @@ def save_json(obj, path: str | Path) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2)
 
-
-# ---------------------------
-# CLI
-# ---------------------------
-
+# Argument parsing for command line
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Evaluate hybrid pedestrian simulation outputs against ground truth, optionally versus a baseline."
@@ -460,6 +449,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    # Run tests and report to console
     args = parse_args()
     ensure_dir(args.output_dir)
 
@@ -497,7 +487,7 @@ def main() -> None:
             "id_coverage_csv": str(missing_path),
         },
     }
-
+    # if we selected to compare to baseline, do so here
     baseline_comparison = None
     if args.baseline_pedestrian_output_json:
         base_ped_df = load_sim_ped_json(args.baseline_pedestrian_output_json)
